@@ -45,20 +45,29 @@ const Index = () => {
     setIsLoading(true)
     
     try {
+      console.log('Sending data to API:', data)
+      
       // Make API call to breast cancer prediction service
       const response = await fetch('https://breast-cancer-api-mgxh.onrender.com/predict', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(data)
       })
 
+      console.log('API Response status:', response.status)
+      console.log('API Response headers:', Object.fromEntries(response.headers.entries()))
+
       if (!response.ok) {
-        throw new Error(`API Error: ${response.status} ${response.statusText}`)
+        const errorText = await response.text()
+        console.error('API Error response:', errorText)
+        throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorText}`)
       }
 
       const apiResult = await response.json()
+      console.log('API Result:', apiResult)
       
       // Transform API response to match our interface
       const features = Object.entries(data)
@@ -71,8 +80,8 @@ const Index = () => {
       const result: PredictionResult = {
         prediction: apiResult.prediction || 'BENIGN',
         accuracy: apiResult.accuracy || 98.3,
-        confidence: apiResult.confidence || apiResult.probability * 100 || 85,
-        riskScore: apiResult.risk_score || apiResult.probability * 100 || 0,
+        confidence: apiResult.confidence || (apiResult.probability ? apiResult.probability * 100 : 85),
+        riskScore: apiResult.risk_score || (apiResult.probability ? apiResult.probability * 100 : 0),
         insights
       }
 
@@ -85,11 +94,22 @@ const Index = () => {
       })
       
     } catch (error) {
-      toast({
-        title: "Analysis Failed",
-        description: "Please try again or contact support.",
-        variant: "destructive",
-      })
+      console.error('Prediction error:', error)
+      
+      // Check if it's a network/CORS error
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        toast({
+          title: "Connection Failed",
+          description: "Unable to connect to API. This might be a CORS issue or the API server is down.",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Analysis Failed",
+          description: error instanceof Error ? error.message : "Please try again or contact support.",
+          variant: "destructive",
+        })
+      }
     } finally {
       setIsLoading(false)
     }
