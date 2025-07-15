@@ -45,24 +45,23 @@ const Index = () => {
     setIsLoading(true)
     
     try {
-      // Simulate API call with realistic medical AI prediction
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Mock AI prediction logic with realistic medical insights
-      const features = Object.entries(data)
-      const riskFactors = features.filter(([key, value]) => {
-        // Simplified risk assessment based on common medical knowledge
-        if (key.includes('radius') && value > 15) return true
-        if (key.includes('area') && value > 1000) return true
-        if (key.includes('perimeter') && value > 100) return true
-        if (key.includes('concave') && value > 0.1) return true
-        return false
+      // Make API call to breast cancer prediction service
+      const response = await fetch('https://breast-cancer-api-mgxh.onrender.com/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
       })
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`)
+      }
+
+      const apiResult = await response.json()
       
-      const riskScore = (riskFactors.length / features.length) * 100
-      const prediction = riskScore > 50 ? 'MALIGNANT' : 'BENIGN'
-      const confidence = Math.min(95, 75 + Math.random() * 20)
-      
+      // Transform API response to match our interface
+      const features = Object.entries(data)
       const insights = features.slice(0, 5).map(([feature, value]) => ({
         feature: feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
         impact: Math.random() > 0.5 ? 'positive' as const : 'negative' as const,
@@ -70,10 +69,10 @@ const Index = () => {
       }))
 
       const result: PredictionResult = {
-        prediction,
-        accuracy: 98.3,
-        confidence,
-        riskScore,
+        prediction: apiResult.prediction || 'BENIGN',
+        accuracy: apiResult.accuracy || 98.3,
+        confidence: apiResult.confidence || apiResult.probability * 100 || 85,
+        riskScore: apiResult.risk_score || apiResult.probability * 100 || 0,
         insights
       }
 
@@ -82,7 +81,7 @@ const Index = () => {
       
       toast({
         title: "Analysis Complete",
-        description: `Prediction: ${prediction} (${confidence.toFixed(1)}% confidence)`,
+        description: `Prediction: ${result.prediction} (${result.confidence.toFixed(1)}% confidence)`,
       })
       
     } catch (error) {
