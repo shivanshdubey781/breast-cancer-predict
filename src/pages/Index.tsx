@@ -46,6 +46,7 @@ const Index = () => {
     
     try {
       console.log('Sending data to API:', data)
+      console.log('API URL:', 'https://breast-cancer-api-mgxh.onrender.com/predict')
       
       // Make API call to breast cancer prediction service
       const response = await fetch('https://breast-cancer-api-mgxh.onrender.com/predict', {
@@ -68,6 +69,8 @@ const Index = () => {
 
       const apiResult = await response.json()
       console.log('API Result:', apiResult)
+      console.log('API Result type:', typeof apiResult)
+      console.log('API Result keys:', Object.keys(apiResult))
       
       // Transform API response to match our interface
       const features = Object.entries(data)
@@ -85,6 +88,8 @@ const Index = () => {
         insights
       }
 
+      console.log('Transformed result:', result)
+
       setPredictionResult(result)
       setCurrentState('result')
       
@@ -95,6 +100,8 @@ const Index = () => {
       
     } catch (error) {
       console.error('Prediction error:', error)
+      console.error('Error type:', error?.constructor?.name)
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error')
       
       // Check if it's a network/CORS error
       if (error instanceof TypeError && error.message.includes('fetch')) {
