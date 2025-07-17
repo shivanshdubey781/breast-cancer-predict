@@ -55,7 +55,7 @@ const Index = () => {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({ features: data })
       })
 
       console.log('API Response status:', response.status)
