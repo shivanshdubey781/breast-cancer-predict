@@ -46,10 +46,10 @@ const Index = () => {
     
     try {
       console.log('Sending data to API:', data)
-      console.log('API URL:', 'https://breast-cancer-api-mgxh.onrender.com/predict')
+      console.log('API URL:', 'https://breastcancerapi-production.up.railway.app/predict')
       
       // Make API call to breast cancer prediction service
-      const response = await fetch('https://breast-cancer-api-mgxh.onrender.com/predict', {
+      const response = await fetch('https://breastcancerapi-production.up.railway.app/predict', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
